@@ -6,6 +6,7 @@
 #include "config.hh"
 #include "platform.hh"
 
+#include "clang/Tooling/ArgumentsAdjusters.h"
 #include <clang/AST/Type.h>
 #include <clang/Driver/Action.h>
 #include <clang/Driver/Compilation.h>
@@ -81,6 +82,19 @@ buildCompilerInvocation(const std::string &main, std::vector<const char *> args,
   std::string save = "-resource-dir=" + g_config->clang.resourceDir;
   args.push_back(save.c_str());
   args.push_back("-fsyntax-only");
+
+  std::vector<std::string> s;
+  std::vector<const char*> arg_a;
+
+  for(std::vector<const char*>::iterator it = args.begin(); it != args.end(); ++it)
+    s.push_back(*it);
+
+  s = clang::tooling::getClangSyntaxOnlyAdjuster()(s,"");
+
+  for(int i = 0; i< s.size(); i++)
+    arg_a.push_back(s[i].c_str());
+
+  args = arg_a;
 
   // Similar to clang/tools/driver/driver.cpp:insertTargetAndModeArgs but don't
   // require llvm::InitializeAllTargetInfos().
